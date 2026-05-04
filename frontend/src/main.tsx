@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './index.css';
+import "./styles/index.css";
 
 // 1. Nếu '@mysten/sui/client' báo lỗi không có member, hãy thêm .js như dưới đây
 import { createSuiClient } from '@mysten/sui.js/client'; 

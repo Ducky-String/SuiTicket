@@ -1,0 +1,6 @@
+[package]
+name = "move_contracts"
+edition = "2024.beta"
+
+[addresses]
+move_contracts = "0x0"

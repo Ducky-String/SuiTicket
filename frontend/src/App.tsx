@@ -1,6 +1,6 @@
 import { MOCK_MOVIES } from "./types/movie";
 // Thêm import type Movie vào đây
-import { type Movie } from "./types/movie"; 
+import { type Movie } from "./types/movie";
 import { ConnectButton, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { createMintTicketTransaction } from './types/onchain';
 
@@ -52,13 +52,13 @@ function App() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
           {MOCK_MOVIES.map((movie) => (
             <div key={movie.id} className="bg-gray-900 rounded-2xl border border-gray-800 hover:border-blue-500/50 transition-all duration-500 group relative flex flex-col">
-              
+
               {/* Ảnh Poster với hiệu ứng 3D */}
               <div className="relative w-full aspect-[2/3] p-3">
                 <div className="w-full h-full overflow-visible rounded-xl relative">
-                  <img 
-                    src={movie.image} 
-                    alt={movie.title} 
+                  <img
+                    src={movie.image}
+                    alt={movie.title}
                     className="w-full h-full object-cover rounded-xl shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-4 group-hover:z-10 relative"
                   />
                 </div>
@@ -70,14 +70,14 @@ function App() {
                   <span className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">{movie.genre}</span>
                   <h3 className="text-lg font-bold mt-1 leading-tight group-hover:text-blue-400 transition-colors">{movie.title}</h3>
                 </div>
-                
+
                 <div className="flex justify-between items-center mt-6">
                   <div className="flex flex-col">
                     <span className="text-[10px] text-gray-500 uppercase">Giá vé</span>
                     <span className="text-lg font-bold text-emerald-400">{movie.price} SUI</span>
                   </div>
-                  <button 
-                    onClick={() => handleBuyTicket(movie)} 
+                  <button
+                    onClick={() => handleBuyTicket(movie)}
                     className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95 shadow-lg shadow-blue-500/20"
                   >
                     Đặt vé

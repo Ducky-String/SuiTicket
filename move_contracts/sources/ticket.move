@@ -1,8 +1,8 @@
-module move_contracts::ticket;
+module suiticket  ::ticket;
 
-use move_contracts::admin::AdminCap;
-use move_contracts::errors;
-use move_contracts::treasury::{Self, Treasury};
+use suiticket::admin::AdminCap;
+use suiticket::errors;
+use suiticket::treasury::{Self, Treasury};
 use std::string::String;
 use sui::coin::Coin;
 use sui::sui::SUI;

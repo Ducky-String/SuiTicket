@@ -1,6 +1,9 @@
 [package]
-name = "move_contracts"
+name = "suiticket"
 edition = "2024.beta"
 
 [addresses]
-move_contracts = "0x0"
+move_contracts = "0x613ee638ae137915fcf268bc99bcda97e3b819aabcc3202897b2049ce5403d64"
+suiticket = "0x0"
+
+# acc eryk@1 (Nghĩa)

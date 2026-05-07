@@ -1,6 +1,6 @@
-module move_contracts::admin;
+module suiticket::admin;
 
-use move_contracts::errors;
+use suiticket::errors;
 
 public struct AdminCap has key, store {
     id: object::UID,

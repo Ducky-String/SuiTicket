@@ -1,4 +1,4 @@
-module move_contracts::treasury;
+module suiticket::treasury;
 
 use sui::balance::{Self, Balance};
 use sui::coin::{Self, Coin};

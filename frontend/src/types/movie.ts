@@ -13,21 +13,21 @@ export interface Movie {
       id: 1,
       title: "Thỏ ơi",
       genre: "Gia Đình",
-      price: 5,
+      price: 0.01,
       image: "/IMG/Tho_oi_poster.jpg",
     },
     {
       id: 2,
       title: "Mưa Đỏ",
       genre: "Tài liệu",
-      price: 5,
+      price: 0.01,
       image: "/IMG/Mua_do_poster.jpg",
     },
     {
       id: 3,
       title: "Jurassic World",
       genre: "Hành động",
-      price: 7,
+      price: 0.01,
       image: "/IMG/JurassicWorldPoster.jpg",
     }
   ];

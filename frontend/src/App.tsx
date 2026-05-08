@@ -1,15 +1,40 @@
 import { MOCK_MOVIES } from "./types/movie";
 // Thêm import type Movie vào đây
 import { type Movie } from "./types/movie";
-import { ConnectButton, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { createMintTicketTransaction } from './types/onchain';
+import { ConnectButton, useSignAndExecuteTransaction, useCurrentAccount, useSuiClientQuery } from '@mysten/dapp-kit';
+import { handleMintTicket } from './services/tx/executeMintTicket';
 
 function App() {
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
+  const account = useCurrentAccount();
+  const { data: balanceData } = useSuiClientQuery('getBalance', {
+    owner: account?.address as string,
+  }, {
+    enabled: !!account,
+  });
+
   // Sửa lại kiểu dữ liệu ở tham số movie thành Movie
-  const handleBuyTicket = (movie: Movie) => {
-    const tx = createMintTicketTransaction(movie);
+  const handleBuyTicket = async (movie: Movie) => {
+    if (!account) {
+      alert("Vui lòng kết nối ví trước khi mua vé!");
+      return;
+    }
+
+    const priceInMist = 10000000; // 0.01 SUI
+    const currentBalance = balanceData ? Number(balanceData.totalBalance) : 0;
+
+    if (currentBalance < priceInMist) {
+      alert(`Số dư không đủ! Bạn cần 0.01 SUI nhưng ví chỉ có ${currentBalance / 1000000000} SUI.`);
+      return;
+    }
+
+    // Chuyển URL tương đối thành tuyệt đối bằng link Github gốc của dự án để ví Sui có thể hiển thị ảnh
+    const imageUrl = movie.image.startsWith('http') 
+      ? movie.image 
+      : `https://raw.githubusercontent.com/Ducky-String/SuiTicket/main/frontend${movie.image}`;
+
+    const tx = await handleMintTicket(movie.title, imageUrl, 1);
 
     signAndExecuteTransaction(
       { transaction: tx },

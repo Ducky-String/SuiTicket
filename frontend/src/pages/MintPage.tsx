@@ -1,22 +1,19 @@
 import { ConnectButton, useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { useState, type FormEvent } from 'react';
-import { DEFAULT_NETWORK } from '../constants/networks';
 import { PageContainer } from '../components/ui/PageContainer';
-import { executeMintAndTransferTicket } from '../services/tx/executeMintTicket';
+import { handleMintTicket } from '../services/tx/executeMintTicket';
 
 export function MintPage() {
   const currentAccount = useCurrentAccount();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
   const [name, setName] = useState('VIP Ticket');
-  const [description, setDescription] = useState('Entry pass');
-  const [priceMist, setPriceMist] = useState('1000000000');
-  const [buyer, setBuyer] = useState('');
+  const [imageUrl, setImageUrl] = useState('https://example.com/image.png');
+  const [showtime, setShowtime] = useState('10:00');
+  const [quantity, setQuantity] = useState(1);
   const [digest, setDigest] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const resolvedBuyer = buyer.trim() || currentAccount?.address || '';
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,27 +24,15 @@ export function MintPage() {
       setError('Please connect wallet first.');
       return;
     }
-    if (!resolvedBuyer) {
-      setError('Buyer address is required.');
-      return;
-    }
 
     try {
       setIsSubmitting(true);
-      const result = await executeMintAndTransferTicket(
-        {
-          name,
-          description,
-          price: BigInt(priceMist),
-          buyer: resolvedBuyer,
-          network: DEFAULT_NETWORK,
-        },
-        ({ transaction }) =>
-          signAndExecuteTransaction({
-            transaction,
-            chain: `sui:${DEFAULT_NETWORK}`,
-          }),
-      );
+      const transaction = await handleMintTicket(name, imageUrl, showtime, quantity);
+      
+      const result = await signAndExecuteTransaction({
+        transaction,
+      });
+      
       setDigest(result.digest);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Transaction failed.');
@@ -66,7 +51,7 @@ export function MintPage() {
         <label className="grid gap-1">
           <span className="text-sm font-medium">Ticket name</span>
           <input
-            className="rounded border px-3 py-2"
+            className="rounded border px-3 py-2 bg-gray-900"
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
@@ -74,43 +59,43 @@ export function MintPage() {
         </label>
 
         <label className="grid gap-1">
-          <span className="text-sm font-medium">Description</span>
+          <span className="text-sm font-medium">Image URL</span>
           <input
-            className="rounded border px-3 py-2"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
+            className="rounded border px-3 py-2 bg-gray-900"
+            value={imageUrl}
+            onChange={(event) => setImageUrl(event.target.value)}
             required
           />
         </label>
 
         <label className="grid gap-1">
-          <span className="text-sm font-medium">Price (MIST)</span>
+          <span className="text-sm font-medium">Showtime</span>
           <input
-            className="rounded border px-3 py-2"
+            className="rounded border px-3 py-2 bg-gray-900"
+            value={showtime}
+            onChange={(event) => setShowtime(event.target.value)}
+            required
+          />
+        </label>
+
+        <label className="grid gap-1">
+          <span className="text-sm font-medium">Quantity</span>
+          <input
+            className="rounded border px-3 py-2 bg-gray-900"
             type="number"
-            min="0"
-            value={priceMist}
-            onChange={(event) => setPriceMist(event.target.value)}
+            min="1"
+            value={quantity}
+            onChange={(event) => setQuantity(parseInt(event.target.value))}
             required
-          />
-        </label>
-
-        <label className="grid gap-1">
-          <span className="text-sm font-medium">Buyer address (optional)</span>
-          <input
-            className="rounded border px-3 py-2"
-            placeholder="Defaults to connected wallet"
-            value={buyer}
-            onChange={(event) => setBuyer(event.target.value)}
           />
         </label>
 
         <button
-          className="mt-2 rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+          className="mt-2 rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
           disabled={!currentAccount || isSubmitting}
           type="submit"
         >
-          {isSubmitting ? 'Submitting...' : 'Mint and transfer ticket'}
+          {isSubmitting ? 'Submitting...' : 'Mint ticket'}
         </button>
       </form>
 

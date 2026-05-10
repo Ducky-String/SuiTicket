@@ -18,6 +18,7 @@ module suiticket::suiticket {
         id: UID,
         movie_name: String,
         image_url: String,
+        showtime: String,
         quantity: u64,
     }
 
@@ -30,13 +31,15 @@ module suiticket::suiticket {
             string::utf8(b"name"),
             string::utf8(b"description"),
             string::utf8(b"image_url"),
+            string::utf8(b"showtime"),
             string::utf8(b"project_url"),
         ];
 
         let values = vector[
             string::utf8(b"Ve Phim: {movie_name}"),
-            string::utf8(b"Ve xem phim chinh hang phat hanh boi SuiTicket"),
+            string::utf8(b"Ve xem phim chinh hang phat hanh boi SuiTicket. Suat chieu: {showtime}"),
             string::utf8(b"{image_url}"),
+            string::utf8(b"{showtime}"),
             string::utf8(b"https://suiticket.com"),
         ];
 
@@ -58,7 +61,8 @@ module suiticket::suiticket {
     public fun mint_ticket(
         payment: Coin<SUI>,
         movie_name: String,
-        image_url: vector<u8>,
+        image_url: String,
+        showtime: String,
         quantity: u64,
         admin_address: address,
         ctx: &mut TxContext
@@ -72,7 +76,8 @@ module suiticket::suiticket {
         let ticket = Ticket {
             id: object::new(ctx),
             movie_name,
-            image_url: string::utf8(image_url),
+            image_url,
+            showtime,
             quantity,
         };
 
@@ -92,10 +97,11 @@ module suiticket::suiticket {
             id,
             movie_name: _,
             image_url: _,
+            showtime: _,
             quantity: _
         } = ticket;
 
-        object::delete(id); // Sửa lỗi id.delete()
+        object::delete(id);
     }
 
     /// --- Các hàm Getters để xem dữ liệu ---
@@ -105,5 +111,9 @@ module suiticket::suiticket {
 
     public fun get_movie_name(ticket: &Ticket): String {
         ticket.movie_name
+    }
+
+    public fun get_showtime(ticket: &Ticket): String {
+        ticket.showtime
     }
 }

@@ -19,6 +19,7 @@ module suiticket::suiticket {
         movie_name: String,
         image_url: String,
         showtime: String,
+        seat: String,
         quantity: u64,
     }
 
@@ -32,6 +33,7 @@ module suiticket::suiticket {
             string::utf8(b"description"),
             string::utf8(b"image_url"),
             string::utf8(b"showtime"),
+            string::utf8(b"seat"),
             string::utf8(b"project_url"),
         ];
 
@@ -40,6 +42,7 @@ module suiticket::suiticket {
             string::utf8(b"Ve xem phim chinh hang phat hanh boi SuiTicket. Suat chieu: {showtime}"),
             string::utf8(b"{image_url}"),
             string::utf8(b"{showtime}"),
+            string::utf8(b"{seat}"),
             string::utf8(b"https://suiticket.com"),
         ];
 
@@ -63,6 +66,7 @@ module suiticket::suiticket {
         movie_name: String,
         image_url: String,
         showtime: String,
+        seat: String,
         quantity: u64,
         admin_address: address,
         ctx: &mut TxContext
@@ -78,6 +82,7 @@ module suiticket::suiticket {
             movie_name,
             image_url,
             showtime,
+            seat,
             quantity,
         };
 
@@ -98,6 +103,7 @@ module suiticket::suiticket {
             movie_name: _,
             image_url: _,
             showtime: _,
+            seat: _,
             quantity: _
         } = ticket;
 

@@ -1,4 +1,5 @@
 import { Transaction } from '@mysten/sui/transactions';
+import { TICKET_PACKAGE_ID, ADMIN_ADDRESS } from '../../constants/contracts';
 
 /**
  * Handle minting a ticket NFT.
@@ -11,11 +12,7 @@ import { Transaction } from '@mysten/sui/transactions';
 export const handleMintTicket = async (movieName: string, imageUrl: string, showtime: string, seat: string, quantity: number) => {
   const txb = new Transaction();
 
-  // Replace with your actual Package ID after publication
-  const PACKAGE_ID = "0x2b97e83f3eeb69ef1d5a1555457985922ece25967affb19f07042be700c3ffa0";
-
-  // Admin address to receive the payment
-  const ADMIN_ADDRESS = "0x17d3394e754b09fd264781e9c029d7d19578c4ac43fd6c47b8dd3cec00a6fee5";
+  const PACKAGE_ID = TICKET_PACKAGE_ID.testnet;
 
   // Price per ticket: 0.01 SUI (10,000,000 MIST)
   const pricePerTicket = 10_000_000n;

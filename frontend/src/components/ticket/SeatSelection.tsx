@@ -4,17 +4,20 @@ interface SeatSelectionProps {
   movieTitle: string;
   showtime: string;
   pricePerSeat: number;
+  occupiedSeats?: string[]; // New prop
   onConfirm: (selectedSeats: string[]) => void;
   onCancel: () => void;
 }
 
-export const SeatSelection = ({ movieTitle, showtime, pricePerSeat, onConfirm, onCancel }: SeatSelectionProps) => {
+export const SeatSelection = ({ movieTitle, showtime, pricePerSeat, occupiedSeats = [], onConfirm, onCancel }: SeatSelectionProps) => {
   const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
   const cols = Array.from({ length: 14 }, (_, i) => i + 1);
   
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
   const toggleSeat = (seatId: string) => {
+    if (occupiedSeats.includes(seatId)) return; // Prevent selecting occupied seats
+
     if (selectedSeats.includes(seatId)) {
       setSelectedSeats(selectedSeats.filter(id => id !== seatId));
     } else {
@@ -62,15 +65,19 @@ export const SeatSelection = ({ movieTitle, showtime, pricePerSeat, onConfirm, o
                   {cols.map(col => {
                     const seatId = `${row}${col}`;
                     const isSelected = selectedSeats.includes(seatId);
+                    const isOccupied = occupiedSeats.includes(seatId);
                     
                     return (
                       <button
                         key={seatId}
+                        disabled={isOccupied}
                         onClick={() => toggleSeat(seatId)}
                         className={`w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl text-[10px] font-bold transition-all duration-300 transform active:scale-75 ${
-                          isSelected 
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-110 rotate-3' 
-                            : 'bg-gray-800 border border-gray-700 text-gray-500 hover:border-blue-500/50 hover:text-blue-400'
+                          isOccupied
+                            ? 'bg-red-900/40 border border-red-900/50 text-red-500/50 cursor-not-allowed'
+                            : isSelected 
+                              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-110 rotate-3' 
+                              : 'bg-gray-800 border border-gray-700 text-gray-500 hover:border-blue-500/50 hover:text-blue-400'
                         }`}
                       >
                         {col}

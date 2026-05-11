@@ -7,7 +7,7 @@ import { MyTickets } from './components/ticket/MyTickets';
 import { MovieDetail } from './components/MovieDetail';
 import { StaffScanner } from './components/ticket/StaffScanner';
 import { SeatSelection } from './components/ticket/SeatSelection';
-import { saveTicketToSupabase } from './services/ticketService';
+import { saveTicketToSupabase, getOccupiedSeats } from './services/ticketService';
 import confetti from 'canvas-confetti';
 
 type TxStatus = 'idle' | 'signing' | 'processing' | 'success' | 'error';
@@ -21,6 +21,7 @@ function App() {
   const [txDigest, setTxDigest] = useState<string | null>(null);
   const [isSelectingSeats, setIsSelectingSeats] = useState(false);
   const [tempPurchaseData, setTempPurchaseData] = useState<{ movie: Movie; showtime: string } | null>(null);
+  const [occupiedSeats, setOccupiedSeats] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
@@ -58,11 +59,21 @@ function App() {
     }, 250);
   };
 
-  const handleBuyTicket = (movie: Movie, showtime: string) => {
+  const handleBuyTicket = async (movie: Movie, showtime: string) => {
     if (!account) {
       alert("Vui lòng kết nối ví trước khi mua vé!");
       return;
     }
+    
+    // Fetch occupied seats before opening selection modal
+    try {
+      const seats = await getOccupiedSeats(movie.title, showtime);
+      setOccupiedSeats(seats);
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách ghế đã đặt:", err);
+      // Still open the modal but might not have occupied seats
+    }
+
     setTempPurchaseData({ movie, showtime });
     setIsSelectingSeats(true);
   };
@@ -98,8 +109,9 @@ function App() {
       setTxDigest(result.digest);
 
       // Lưu thông tin vé vào Supabase để nhân viên kiểm tra
+      // Lưu thông tin vé vào Supabase để nhân viên kiểm tra
       try {
-        await saveTicketToSupabase({
+        const supabaseResult = await saveTicketToSupabase({
           movie_title: movie.title,
           image_url: imageUrl,
           showtime: showtime,
@@ -109,10 +121,14 @@ function App() {
           transaction_digest: result.digest,
           status: 'valid'
         });
-        console.log('Thông tin vé đã được lưu vào Supabase');
+
+        if (supabaseResult.success) {
+          console.log('Thông tin vé đã được lưu vào Supabase');
+        } else {
+          console.error('Không thể lưu vé vào Supabase:', supabaseResult.error);
+        }
       } catch (supabaseErr) {
-        console.error('Lỗi khi lưu vào Supabase:', supabaseErr);
-        // Không chặn luồng chính nếu lỗi Supabase, vì vé đã được đúc trên blockchain
+        console.error('Lỗi ngoại lệ khi lưu vào Supabase:', supabaseErr);
       }
 
       setTxStatus('success');
@@ -230,6 +246,7 @@ function App() {
           movieTitle={tempPurchaseData.movie.title}
           showtime={tempPurchaseData.showtime}
           pricePerSeat={tempPurchaseData.movie.price}
+          occupiedSeats={occupiedSeats}
           onConfirm={handleConfirmPurchase}
           onCancel={() => setIsSelectingSeats(false)}
         />

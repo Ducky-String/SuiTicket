@@ -21,15 +21,15 @@ export interface Movie {
 export const MOCK_MOVIES: Movie[] = [
   {
     id: 1,
-    title: "Thỏ ơi",
-    genre: "Gia Đình",
+    title: "Thỏ ơi!!",
+    genre: "Hài / Tâm lý / Tình cảm",
     price: 0.01,
     image: "/IMG/tho_oi.jpg",
-    description: "lấy cảm hứng từ những câu chuyện tình yêu có thật được khai thác theo góc nhìn cá nhân của anh. Với sự tham gia diễn xuất của các diễn viên gồm Pháo, Lyly, Trấn Thành, Vĩnh Đam, Văn Mai Hương và Quốc Anh, phim theo chân Hải Linh, một nữ người dẫn chương trình của talk show Chị bờ vai, chuyên tư vấn các vấn đề tình cảm cho khách mời giấu mặt. Mọi chuyện trở nên phức tạp khi Nhật Hạ tiết lộ biến cố tình cảm liên quan đến Trần Trung Kim và mối quan hệ chồng chéo với Thế Phong – chồng của Linh, kéo theo hàng loạt xung đột cá nhân và đạo đức. ",
+    description: "Bộ phim lấy cảm hứng từ những câu chuyện tình yêu có thật, được khai thác dưới góc nhìn cá nhân đầy sâu sắc. Phim theo chân Hải Linh (Lyly) - người dẫn chương trình nổi tiếng của talkshow 'Chị Bờ Vai', chuyên tư vấn tâm lý cho các khách mời giấu mặt. Mọi chuyện trở nên phức tạp khi khách mời Nhật Hạ hé lộ những biến cố tình cảm liên quan mật thiết đến Trần Trung Kim (Trấn Thành) và mối quan hệ chồng chéo với Thế Phong (Vĩnh Đam) – chồng của Linh, kéo theo hàng loạt xung đột về cá nhân và đạo đức.",
     director: "Trấn Thành",
-    cast: "Trấn Thành,  Pháo, Lyly, Vĩnh Đam, Văn Mai Hương và Quốc Anh,",
-    duration: "95 phút",
-    rating: "P",
+    cast: "Trấn Thành, Lyly, Vĩnh Đam, Pháo, Văn Mai Hương, Quốc Anh",
+    duration: "115 phút",
+    rating: "T13",
     showtimes: ["09:00", "11:30", "14:00", "16:30", "19:00", "21:30"],
     status: 'now-playing',
     trailerUrl: "https://www.youtube.com/embed/XMv1Zhj5TQg", // Ví dụ video

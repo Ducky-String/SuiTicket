@@ -12,6 +12,11 @@ export interface TicketData {
 }
 
 export const saveTicketToSupabase = async (ticketData: TicketData) => {
+  if (!supabase) {
+    console.warn('Supabase is not initialized. Skipping database save.');
+    return { success: false, error: 'Supabase not initialized' };
+  }
+
   try {
     const { data, error } = await supabase
       .from('tickets')

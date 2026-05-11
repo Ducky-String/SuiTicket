@@ -3,7 +3,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { useEffect, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
-const PACKAGE_ID = "0x9c49d21a7e7df43d44d7fd0b137e4b94304a7f465e2a44e73080090fa99f9c30";
+const PACKAGE_ID = "0x2b97e83f3eeb69ef1d5a1555457985922ece25967affb19f07042be700c3ffa0";
 const TICKET_TYPE = `${PACKAGE_ID}::suiticket::Ticket`;
 
 interface TicketDetails {
@@ -11,6 +11,7 @@ interface TicketDetails {
   movie_name: string;
   image_url: string;
   showtime: string;
+  seat: string;
   quantity: string;
 }
 
@@ -21,7 +22,7 @@ export const MyTickets = () => {
   const [loading, setLoading] = useState(false);
   const [selectedTicketQr, setSelectedTicketQr] = useState<string | null>(null);
 
-  const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
 
   const handleBurnTicket = async (ticketId: string) => {
     const txb = new Transaction();
@@ -31,19 +32,15 @@ export const MyTickets = () => {
       arguments: [txb.object(ticketId)],
     });
 
-    signAndExecute(
-      { transaction: txb },
-      {
-        onSuccess: () => {
-          alert("Soát vé thành công! Chúc bạn xem phim vui vẻ.");
-          window.location.reload(); 
-        },
-        onError: (err) => {
-          console.error("Lỗi khi soát vé:", err);
-          alert("Có lỗi xảy ra khi soát vé.");
-        },
-      }
-    );
+    try {
+      await signAndExecute({ transaction: txb });
+      alert("Soát vé thành công! Chúc bạn xem phim vui vẻ.");
+      window.location.reload();
+    } catch (err: any) {
+      console.error("Lỗi khi soát vé chi tiết:", err);
+      const errorMsg = err?.message || (typeof err === 'undefined' ? 'Giao dịch bị từ chối hoặc lỗi ví' : 'Có lỗi xảy ra khi soát vé');
+      alert(errorMsg);
+    }
   };
 
   useEffect(() => {
@@ -89,6 +86,7 @@ export const MyTickets = () => {
             movie_name: getSuiString(fields?.movie_name) || 'N/A',
             image_url: getSuiString(fields?.image_url) || '',
             showtime: getSuiString(fields?.showtime) || 'N/A',
+            seat: getSuiString(fields?.seat) || 'N/A',
             quantity: fields?.quantity || '0',
           };
         }).filter((t): t is TicketDetails => t !== null);
@@ -106,7 +104,7 @@ export const MyTickets = () => {
 
   const getTicketStatus = (showtime: string) => {
     if (showtime === 'N/A') return { text: 'N/A', color: 'bg-gray-500' };
-    
+
     const now = new Date();
     const [hours, minutes] = showtime.split(':').map(Number);
     const showtimeDate = new Date();
@@ -172,22 +170,24 @@ export const MyTickets = () => {
                 <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Sở hữu</span>
                 <h3 className="text-lg font-bold mt-1 text-white truncate">{ticket.movie_name}</h3>
                 <div className="flex items-center gap-2 mt-2 text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                   <span className="text-sm font-bold text-blue-400">{ticket.showtime}</span>
+                  <span className="w-1 h-1 bg-gray-700 rounded-full"></span>
+                  <span className="text-sm font-bold text-emerald-400">Ghế: {ticket.seat}</span>
                 </div>
               </div>
-              
+
               <div className="mt-4 pt-4 border-t border-gray-800 space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] text-gray-500 uppercase font-medium">NFT ID</span>
                   <span className="text-[10px] text-gray-400 font-mono">{ticket.id.slice(0, 6)}...{ticket.id.slice(-4)}</span>
                 </div>
-                
+
                 <button
                   onClick={() => setSelectedTicketQr(ticket.id)}
                   className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded-xl transition-all duration-300 shadow-lg shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16h.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3" /><path d="M21 21v.01" /><path d="M12 7v3a2 2 0 0 1-2 2H7" /><path d="M3 12h.01" /><path d="M12 3h.01" /><path d="M12 16h.01" /><path d="M16 12h1" /><path d="M21 12v.01" /><path d="M12 21v-1" /></svg>
                   HIỆN MÃ QR
                 </button>
 
@@ -207,26 +207,26 @@ export const MyTickets = () => {
       {selectedTicketQr && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-gray-900 border border-gray-800 p-8 rounded-3xl max-w-sm w-full relative shadow-2xl animate-in zoom-in-95 duration-300">
-            <button 
+            <button
               onClick={() => setSelectedTicketQr(null)}
               className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
             </button>
-            
+
             <div className="text-center">
               <h3 className="text-xl font-bold mb-2">Mã QR Vé Phim</h3>
               <p className="text-gray-400 text-sm mb-6">Đưa mã này cho nhân viên tại rạp để soát vé</p>
-              
+
               <div className="bg-white p-4 rounded-2xl inline-block shadow-inner mb-6">
-                <QRCodeCanvas 
-                  value={selectedTicketQr} 
+                <QRCodeCanvas
+                  value={selectedTicketQr}
                   size={200}
                   level="H"
                   includeMargin={false}
                 />
               </div>
-              
+
               <div className="text-[10px] font-mono text-gray-500 break-all bg-black/30 p-3 rounded-lg border border-gray-800">
                 {selectedTicketQr}
               </div>

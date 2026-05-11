@@ -5,13 +5,14 @@ import { Transaction } from '@mysten/sui/transactions';
  * @param movieName Name of the movie
  * @param imageUrl URL of the movie poster
  * @param showtime Selected showtime
+ * @param seat Selected seat(s) as a string
  * @param quantity Number of tickets to mint
  */
-export const handleMintTicket = async (movieName: string, imageUrl: string, showtime: string, quantity: number) => {
+export const handleMintTicket = async (movieName: string, imageUrl: string, showtime: string, seat: string, quantity: number) => {
   const txb = new Transaction();
 
   // Replace with your actual Package ID after publication
-  const PACKAGE_ID = "0x9c49d21a7e7df43d44d7fd0b137e4b94304a7f465e2a44e73080090fa99f9c30";
+  const PACKAGE_ID = "0x2b97e83f3eeb69ef1d5a1555457985922ece25967affb19f07042be700c3ffa0";
 
   // Admin address to receive the payment
   const ADMIN_ADDRESS = "0x17d3394e754b09fd264781e9c029d7d19578c4ac43fd6c47b8dd3cec00a6fee5";
@@ -32,7 +33,8 @@ export const handleMintTicket = async (movieName: string, imageUrl: string, show
       paymentCoin,
       txb.pure.string(movieName),
       txb.pure.string(imageUrl),
-      txb.pure.string(showtime), // NEW: showtime argument
+      txb.pure.string(showtime),
+      txb.pure.string(seat), // RE-ACTIVATED: seat argument
       txb.pure.u64(quantity),
       txb.pure.address(ADMIN_ADDRESS)
     ],

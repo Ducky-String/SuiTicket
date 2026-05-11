@@ -27,7 +27,7 @@ export function MintPage() {
 
     try {
       setIsSubmitting(true);
-      const transaction = await handleMintTicket(name, imageUrl, showtime, quantity);
+      const transaction = await handleMintTicket(name, imageUrl, showtime, '', quantity);
       
       const result = await signAndExecuteTransaction({
         transaction,

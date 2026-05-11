@@ -6,6 +6,7 @@ import { handleMintTicket } from './services/tx/executeMintTicket';
 import { MyTickets } from './components/ticket/MyTickets';
 import { MovieDetail } from './components/MovieDetail';
 import { StaffScanner } from './components/ticket/StaffScanner';
+import { SeatSelection } from './components/ticket/SeatSelection';
 import confetti from 'canvas-confetti';
 
 type TxStatus = 'idle' | 'signing' | 'processing' | 'success' | 'error';
@@ -17,8 +18,10 @@ function App() {
   const [txStatus, setTxStatus] = useState<TxStatus>('idle');
   const [txError, setTxError] = useState<string | null>(null);
   const [txDigest, setTxDigest] = useState<string | null>(null);
+  const [isSelectingSeats, setIsSelectingSeats] = useState(false);
+  const [tempPurchaseData, setTempPurchaseData] = useState<{ movie: Movie; showtime: string } | null>(null);
 
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
   const account = useCurrentAccount();
   const { data: balanceData } = useSuiClientQuery('getBalance', {
@@ -53,48 +56,51 @@ function App() {
     }, 250);
   };
 
-  const handleBuyTicket = async (movie: Movie, showtime: string) => {
+  const handleBuyTicket = (movie: Movie, showtime: string) => {
     if (!account) {
       alert("Vui lòng kết nối ví trước khi mua vé!");
       return;
     }
+    setTempPurchaseData({ movie, showtime });
+    setIsSelectingSeats(true);
+  };
 
-    const priceInMist = 10000000; // 0.01 SUI
+  const handleConfirmPurchase = async (selectedSeats: string[]) => {
+    if (!tempPurchaseData || !account) return;
+
+    const { movie, showtime } = tempPurchaseData;
+    const quantity = selectedSeats.length;
+    const priceInMist = Math.round(movie.price * 1_000_000_000) * quantity; 
     const currentBalance = balanceData ? Number(balanceData.totalBalance) : 0;
 
     if (currentBalance < priceInMist) {
-      alert(`Số dư không đủ! Bạn cần 0.01 SUI nhưng ví chỉ có ${currentBalance / 1000000000} SUI.`);
+      alert(`Số dư không đủ! Bạn cần ${(priceInMist / 1000000000).toFixed(2)} SUI nhưng ví chỉ có ${currentBalance / 1000000000} SUI.`);
       return;
     }
 
+    setIsSelectingSeats(false);
     setTxStatus('signing');
     setTxError(null);
 
     try {
       const imageUrl = movie.image.startsWith('http') 
         ? movie.image 
-        : `https://raw.githubusercontent.com/Ducky-String/SuiTicket/main/frontend${movie.image}`;
+        : `https://raw.githubusercontent.com/Ducky-String/SuiTicket/main/frontend${movie.image.startsWith('/') ? movie.image : '/' + movie.image}`;
 
-      const tx = await handleMintTicket(movie.title, imageUrl, showtime, 1);
+      const seatString = selectedSeats.join(', ');
+      const tx = await handleMintTicket(movie.title, imageUrl, showtime, seatString, quantity);
 
-      signAndExecuteTransaction(
-        { transaction: tx },
-        {
-          onSuccess: (result) => {
-            console.log('Giao dịch thành công:', result);
-            setTxDigest(result.digest);
-            setTxStatus('success');
-            fireConfetti();
-          },
-          onError: (error) => {
-            console.error('Lỗi giao dịch:', error);
-            setTxError(error.message || 'Giao dịch thất bại');
-            setTxStatus('error');
-          },
-        }
-      );
-    } catch (err: any) {
-      setTxError(err.message || 'Lỗi khởi tạo giao dịch');
+      const result = await signAndExecuteTransaction({ transaction: tx });
+      
+      console.log('Giao dịch thành công:', result);
+      setTxDigest(result.digest);
+      setTxStatus('success');
+      fireConfetti();
+    } catch (error: any) {
+      console.error('Lỗi giao dịch chi tiết:', error);
+      // Nếu lỗi là undefined hoặc trống, hiển thị thông báo thân thiện
+      const errorMsg = error?.message || (typeof error === 'undefined' ? 'Giao dịch bị từ chối hoặc lỗi kết nối ví' : 'Giao dịch thất bại');
+      setTxError(errorMsg);
       setTxStatus('error');
     }
   };
@@ -197,6 +203,16 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-950 text-white font-sans selection:bg-blue-500/30 flex flex-col">
       <TransactionModal />
+      
+      {isSelectingSeats && tempPurchaseData && (
+        <SeatSelection 
+          movieTitle={tempPurchaseData.movie.title}
+          showtime={tempPurchaseData.showtime}
+          pricePerSeat={tempPurchaseData.movie.price}
+          onConfirm={handleConfirmPurchase}
+          onCancel={() => setIsSelectingSeats(false)}
+        />
+      )}
       
       {/* 1. NAVBAR */}
       <nav className="flex justify-between items-center p-6 bg-gray-900/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">

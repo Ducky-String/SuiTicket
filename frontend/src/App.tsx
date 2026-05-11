@@ -85,7 +85,7 @@ function App() {
     try {
       const imageUrl = movie.image.startsWith('http') 
         ? movie.image 
-        : `https://raw.githubusercontent.com/Ducky-String/SuiTicket/main/frontend${movie.image.startsWith('/') ? movie.image : '/' + movie.image}`;
+        : `https://raw.githubusercontent.com/Ducky-String/SuiTicket/main/frontend/public${movie.image.startsWith('/') ? movie.image : '/' + movie.image}`;
 
       const seatString = selectedSeats.join(', ');
       const tx = await handleMintTicket(movie.title, imageUrl, showtime, seatString, quantity);

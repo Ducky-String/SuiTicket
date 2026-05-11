@@ -147,16 +147,18 @@ export const MyTickets = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
       {tickets.map((ticket) => {
         const status = getTicketStatus(ticket.showtime);
         return (
-          <div key={ticket.id} className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group flex flex-col">
+          <div key={ticket.id} className="bg-gray-900 rounded-3xl border border-gray-800 overflow-hidden hover:border-emerald-500/50 transition-all duration-500 group flex flex-col shadow-xl hover:shadow-emerald-500/10">
             <div className="aspect-[2/3] relative">
               <img
-                src={ticket.image_url}
+                src={ticket.image_url.includes('githubusercontent.com') && !ticket.image_url.includes('/public/') 
+                  ? ticket.image_url.replace('/frontend/', '/frontend/public/') 
+                  : ticket.image_url}
                 alt={ticket.movie_name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
               />
               <div className="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                 x{ticket.quantity} Vé

@@ -20,6 +20,7 @@ function App() {
   const [txDigest, setTxDigest] = useState<string | null>(null);
   const [isSelectingSeats, setIsSelectingSeats] = useState(false);
   const [tempPurchaseData, setTempPurchaseData] = useState<{ movie: Movie; showtime: string } | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
@@ -216,7 +217,7 @@ function App() {
       
       {/* 1. NAVBAR */}
       <nav className="flex justify-between items-center p-6 bg-gray-900/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
-        <div className="flex items-center cursor-pointer" onClick={() => setView('now-playing')}>
+        <div className="flex items-center cursor-pointer" onClick={() => { setView('now-playing'); setIsMobileMenuOpen(false); }}>
           <img 
             src="/logo.png" 
             alt="SUI TICKET Logo" 
@@ -224,22 +225,24 @@ function App() {
           />
           <h1 className="text-2xl font-black text-white tracking-tighter uppercase">SUI TICKET</h1>
         </div>
-        <div className="space-x-6 flex items-center">
+        
+        {/* Desktop Links */}
+        <div className="space-x-6 hidden md:flex items-center">
           <button 
             onClick={() => setView('now-playing')} 
-            className={`transition hidden md:block text-sm font-bold uppercase tracking-widest ${view === 'now-playing' ? 'text-blue-400' : 'text-gray-500 hover:text-white'}`}
+            className={`transition text-sm font-bold uppercase tracking-widest ${view === 'now-playing' ? 'text-blue-400' : 'text-gray-500 hover:text-white'}`}
           >
             Đang chiếu
           </button>
           <button 
             onClick={() => setView('coming-soon')} 
-            className={`transition hidden md:block text-sm font-bold uppercase tracking-widest ${view === 'coming-soon' ? 'text-blue-400' : 'text-gray-500 hover:text-white'}`}
+            className={`transition text-sm font-bold uppercase tracking-widest ${view === 'coming-soon' ? 'text-blue-400' : 'text-gray-500 hover:text-white'}`}
           >
             Sắp chiếu
           </button>
           <button 
             onClick={() => setView('tickets')} 
-            className={`transition hidden md:block text-sm font-bold uppercase tracking-widest ${view === 'tickets' ? 'text-blue-400' : 'text-gray-500 hover:text-white'}`}
+            className={`transition text-sm font-bold uppercase tracking-widest ${view === 'tickets' ? 'text-blue-400' : 'text-gray-500 hover:text-white'}`}
           >
             Vé của tôi
           </button>
@@ -250,8 +253,54 @@ function App() {
             <div className={`w-1.5 h-1.5 rounded-full ${view === 'staff' ? 'bg-white animate-pulse' : 'bg-gray-600'}`}></div>
             Staff Mode
           </button>
-          <ConnectButton />
         </div>
+
+        <div className="flex items-center gap-4">
+          <ConnectButton />
+          
+          {/* Hamburger Button */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-gray-400 hover:text-white focus:outline-none"
+          >
+            {isMobileMenuOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 p-6 flex flex-col gap-6 md:hidden animate-in slide-in-from-top duration-300 z-40">
+            <button 
+              onClick={() => { setView('now-playing'); setIsMobileMenuOpen(false); }} 
+              className={`text-left text-sm font-bold uppercase tracking-widest ${view === 'now-playing' ? 'text-blue-400' : 'text-gray-500'}`}
+            >
+              Đang chiếu
+            </button>
+            <button 
+              onClick={() => { setView('coming-soon'); setIsMobileMenuOpen(false); }} 
+              className={`text-left text-sm font-bold uppercase tracking-widest ${view === 'coming-soon' ? 'text-blue-400' : 'text-gray-500'}`}
+            >
+              Sắp chiếu
+            </button>
+            <button 
+              onClick={() => { setView('tickets'); setIsMobileMenuOpen(false); }} 
+              className={`text-left text-sm font-bold uppercase tracking-widest ${view === 'tickets' ? 'text-blue-400' : 'text-gray-500'}`}
+            >
+              Vé của tôi
+            </button>
+            <button 
+              onClick={() => { setView('staff'); setIsMobileMenuOpen(false); }} 
+              className={`flex items-center gap-3 text-sm font-bold uppercase tracking-widest ${view === 'staff' ? 'text-indigo-400' : 'text-gray-500'}`}
+            >
+              <div className={`w-2 h-2 rounded-full ${view === 'staff' ? 'bg-indigo-400 animate-pulse' : 'bg-gray-700'}`}></div>
+              Staff Mode
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* 2. HERO SECTION */}

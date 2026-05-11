@@ -7,6 +7,7 @@ import { MyTickets } from './components/ticket/MyTickets';
 import { MovieDetail } from './components/MovieDetail';
 import { StaffScanner } from './components/ticket/StaffScanner';
 import { SeatSelection } from './components/ticket/SeatSelection';
+import { saveTicketToSupabase } from './services/ticketService';
 import confetti from 'canvas-confetti';
 
 type TxStatus = 'idle' | 'signing' | 'processing' | 'success' | 'error';
@@ -95,6 +96,25 @@ function App() {
       
       console.log('Giao dịch thành công:', result);
       setTxDigest(result.digest);
+
+      // Lưu thông tin vé vào Supabase để nhân viên kiểm tra
+      try {
+        await saveTicketToSupabase({
+          movie_title: movie.title,
+          image_url: imageUrl,
+          showtime: showtime,
+          seats: seatString,
+          quantity: quantity,
+          owner_address: account.address,
+          transaction_digest: result.digest,
+          status: 'valid'
+        });
+        console.log('Thông tin vé đã được lưu vào Supabase');
+      } catch (supabaseErr) {
+        console.error('Lỗi khi lưu vào Supabase:', supabaseErr);
+        // Không chặn luồng chính nếu lỗi Supabase, vì vé đã được đúc trên blockchain
+      }
+
       setTxStatus('success');
       fireConfetti();
     } catch (error: any) {

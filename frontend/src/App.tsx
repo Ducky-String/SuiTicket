@@ -13,6 +13,99 @@ import confetti from 'canvas-confetti';
 type TxStatus = 'idle' | 'signing' | 'processing' | 'success' | 'error';
 type ViewType = 'now-playing' | 'coming-soon' | 'tickets' | 'detail' | 'staff';
 
+// --- TransactionModal tách ra ngoài App để tránh remount mỗi render ---
+interface TransactionModalProps {
+  txStatus: TxStatus;
+  txError: string | null;
+  txDigest: string | null;
+  onClose: () => void;
+  onViewTickets: () => void;
+}
+
+const TransactionModal = ({ txStatus, txError, txDigest, onClose, onViewTickets }: TransactionModalProps) => {
+  if (txStatus === 'idle') return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="bg-gray-900 border border-gray-800 p-8 rounded-3xl max-w-sm w-full relative shadow-2xl animate-in zoom-in-95 duration-300 text-center">
+        
+        {(txStatus === 'success' || txStatus === 'error') && (
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        )}
+
+        <div className="mb-6 flex justify-center">
+          {txStatus === 'signing' && (
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="w-8 h-8 text-blue-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              </div>
+            </div>
+          )}
+          {txStatus === 'processing' && (
+            <div className="w-20 h-20 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+          )}
+          {txStatus === 'success' && (
+            <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-in zoom-in duration-500">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+          )}
+          {txStatus === 'error' && (
+            <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center shadow-lg shadow-red-500/20 animate-in zoom-in duration-500">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </div>
+          )}
+        </div>
+
+        <h3 className="text-xl font-bold mb-2">
+          {txStatus === 'signing' && 'Đang đợi ký ví...'}
+          {txStatus === 'processing' && 'Đang xác nhận trên Sui...'}
+          {txStatus === 'success' && 'Mua vé thành công!'}
+          {txStatus === 'error' && 'Giao dịch thất bại'}
+        </h3>
+
+        <p className="text-gray-400 text-sm mb-6">
+          {txStatus === 'signing' && 'Vui lòng xác nhận giao dịch trong ví của bạn để tiếp tục.'}
+          {txStatus === 'processing' && 'Giao dịch đang được xử lý bởi mạng lưới Sui. Vui lòng không đóng cửa sổ.'}
+          {txStatus === 'success' && 'Chúc mừng! Vé NFT của bạn đã được đúc thành công và gửi vào ví.'}
+          {txStatus === 'error' && (txError || 'Đã có lỗi xảy ra trong quá trình xử lý giao dịch.')}
+        </p>
+
+        {txStatus === 'success' && txDigest && (
+          <div className="mt-4 p-3 bg-black/30 rounded-xl border border-gray-800">
+            <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Transaction Digest</p>
+            <p className="text-[10px] font-mono text-blue-400 break-all">{txDigest}</p>
+          </div>
+        )}
+
+        {txStatus === 'success' && (
+          <button 
+            onClick={onViewTickets}
+            className="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-900/20"
+          >
+            XEM VÉ CỦA TÔI
+          </button>
+        )}
+
+        {txStatus === 'error' && (
+          <button 
+            onClick={onClose}
+            className="mt-8 w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all active:scale-95"
+          >
+            QUAY LẠI
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
 function App() {
   const [view, setView] = useState<ViewType>('now-playing');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
@@ -101,7 +194,8 @@ function App() {
         : `https://raw.githubusercontent.com/Ducky-String/SuiTicket/main/frontend/public${movie.image.startsWith('/') ? movie.image : '/' + movie.image}`;
 
       const seatString = selectedSeats.join(', ');
-      const tx = await handleMintTicket(movie.title, imageUrl, showtime, seatString, quantity);
+      // Truyền movie.price để giá khớp với dữ liệu phim, không hardcode
+      const tx = await handleMintTicket(movie.title, imageUrl, showtime, seatString, quantity, movie.price);
 
       const result = await signAndExecuteTransaction({ transaction: tx });
       
@@ -148,98 +242,17 @@ function App() {
     return true;
   });
 
-  const TransactionModal = () => {
-    if (txStatus === 'idle') return null;
-
-    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-        <div className="bg-gray-900 border border-gray-800 p-8 rounded-3xl max-w-sm w-full relative shadow-2xl animate-in zoom-in-95 duration-300 text-center">
-          
-          {(txStatus === 'success' || txStatus === 'error') && (
-            <button 
-              onClick={() => {
-                setTxStatus('idle');
-                if (txStatus === 'success') setView('tickets');
-              }}
-              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-          )}
-
-          <div className="mb-6 flex justify-center">
-            {txStatus === 'signing' && (
-              <div className="relative">
-                <div className="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-blue-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                </div>
-              </div>
-            )}
-            {txStatus === 'processing' && (
-              <div className="w-20 h-20 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-            )}
-            {txStatus === 'success' && (
-              <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-in zoom-in duration-500">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-              </div>
-            )}
-            {txStatus === 'error' && (
-              <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center shadow-lg shadow-red-500/20 animate-in zoom-in duration-500">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </div>
-            )}
-          </div>
-
-          <h3 className="text-xl font-bold mb-2">
-            {txStatus === 'signing' && 'Đang đợi ký ví...'}
-            {txStatus === 'processing' && 'Đang xác nhận trên Sui...'}
-            {txStatus === 'success' && 'Mua vé thành công!'}
-            {txStatus === 'error' && 'Giao dịch thất bại'}
-          </h3>
-
-          <p className="text-gray-400 text-sm mb-6">
-            {txStatus === 'signing' && 'Vui lòng xác nhận giao dịch trong ví của bạn để tiếp tục.'}
-            {txStatus === 'processing' && 'Giao dịch đang được xử lý bởi mạng lưới Sui. Vui lòng không đóng cửa sổ.'}
-            {txStatus === 'success' && 'Chúc mừng! Vé NFT của bạn đã được đúc thành công và gửi vào ví.'}
-            {txStatus === 'error' && (txError || 'Đã có lỗi xảy ra trong quá trình xử lý giao dịch.')}
-          </p>
-
-          {txStatus === 'success' && txDigest && (
-            <div className="mt-4 p-3 bg-black/30 rounded-xl border border-gray-800">
-              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Transaction Digest</p>
-              <p className="text-[10px] font-mono text-blue-400 break-all">{txDigest}</p>
-            </div>
-          )}
-
-          {txStatus === 'success' && (
-            <button 
-              onClick={() => {
-                setTxStatus('idle');
-                setView('tickets');
-              }}
-              className="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-900/20"
-            >
-              XEM VÉ CỦA TÔI
-            </button>
-          )}
-
-          {txStatus === 'error' && (
-            <button 
-              onClick={() => setTxStatus('idle')}
-              className="mt-8 w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all active:scale-95"
-            >
-              QUAY LẠI
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  };
+  // TransactionModal đã được chuyển ra ngoài App (phía trên) để tránh remount mỗi render.
 
   return (
     <div className="min-h-screen bg-gray-950 text-white font-sans selection:bg-blue-500/30 flex flex-col">
-      <TransactionModal />
+      <TransactionModal 
+        txStatus={txStatus}
+        txError={txError}
+        txDigest={txDigest}
+        onClose={() => setTxStatus('idle')}
+        onViewTickets={() => { setTxStatus('idle'); setView('tickets'); }}
+      />
       
       {isSelectingSeats && tempPurchaseData && (
         <SeatSelection 

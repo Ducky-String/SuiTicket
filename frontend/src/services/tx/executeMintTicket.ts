@@ -8,22 +8,30 @@ import { TICKET_PACKAGE_ID, ADMIN_ADDRESS } from '../../constants/contracts';
  * @param showtime Selected showtime
  * @param seat Selected seat(s) as a string
  * @param quantity Number of tickets to mint
+ * @param pricePerSeat Price per seat in SUI (default 0.01 SUI). Must match PRICE_PER_TICKET in contract.
  */
-export const handleMintTicket = async (movieName: string, imageUrl: string, showtime: string, seat: string, quantity: number) => {
+export const handleMintTicket = async (
+  movieName: string,
+  imageUrl: string,
+  showtime: string,
+  seat: string,
+  quantity: number,
+  pricePerSeat: number = 0.01
+) => {
   const txb = new Transaction();
 
   const PACKAGE_ID = TICKET_PACKAGE_ID.testnet;
 
-  // Price per ticket: 0.01 SUI (10,000,000 MIST)
-  const pricePerTicket = 10_000_000n;
-  const totalAmount = pricePerTicket * BigInt(quantity);
+  // Convert SUI → MIST (1 SUI = 1,000,000,000 MIST) rồi nhân số lượng
+  const priceInMist = BigInt(Math.round(pricePerSeat * 1_000_000_000));
+  const totalAmount = priceInMist * BigInt(quantity);
 
   // 1. Split the payment from the gas coin
   const [paymentCoin] = txb.splitCoins(txb.gas, [txb.pure.u64(totalAmount)]);
 
   // 2. Call the Move function
   // Target: <package_id>::suiticket::mint_ticket
-  // Arguments: payment, movie_name, image_url, showtime, quantity, admin_address
+  // Arguments: payment, movie_name, image_url, showtime, seat, quantity, admin_address
   txb.moveCall({
     target: `${PACKAGE_ID}::suiticket::mint_ticket`,
     arguments: [
@@ -31,7 +39,7 @@ export const handleMintTicket = async (movieName: string, imageUrl: string, show
       txb.pure.string(movieName),
       txb.pure.string(imageUrl),
       txb.pure.string(showtime),
-      txb.pure.string(seat), // RE-ACTIVATED: seat argument
+      txb.pure.string(seat),
       txb.pure.u64(quantity),
       txb.pure.address(ADMIN_ADDRESS)
     ],

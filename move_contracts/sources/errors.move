@@ -1,4 +1,4 @@
-module move_contracts::errors;
+module suiticket::errors;
 
 const E_NOT_ADMIN: u64 = 0;
 const E_SOLD_OUT: u64 = 1;

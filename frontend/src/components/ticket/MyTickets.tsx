@@ -2,8 +2,10 @@ import { useCurrentAccount, useSuiClient, useSignAndExecuteTransaction } from '@
 import { Transaction } from '@mysten/sui/transactions';
 import { useEffect, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { TICKET_PACKAGE_ID } from '../../constants/contracts';
 
-const PACKAGE_ID = "0x2b97e83f3eeb69ef1d5a1555457985922ece25967affb19f07042be700c3ffa0";
+// Dùng constant từ contracts.ts để tránh hardcode rải rác
+const PACKAGE_ID = TICKET_PACKAGE_ID.testnet;
 const TICKET_TYPE = `${PACKAGE_ID}::suiticket::Ticket`;
 
 interface TicketDetails {
@@ -12,7 +14,7 @@ interface TicketDetails {
   image_url: string;
   showtime: string;
   seat: string;
-  quantity: string;
+  quantity: number; // Dùng number thay vì string để so sánh dễ hơn
 }
 
 export const MyTickets = () => {
@@ -87,7 +89,8 @@ export const MyTickets = () => {
             image_url: getSuiString(fields?.image_url) || '',
             showtime: getSuiString(fields?.showtime) || 'N/A',
             seat: getSuiString(fields?.seat) || 'N/A',
-            quantity: fields?.quantity || '0',
+            // Parse sang number để dùng trong getTicketStatus
+            quantity: parseInt(fields?.quantity ?? '0', 10),
           };
         }).filter((t): t is TicketDetails => t !== null);
 
@@ -102,23 +105,17 @@ export const MyTickets = () => {
     fetchTickets();
   }, [account, client]);
 
-  const getTicketStatus = (showtime: string) => {
-    if (showtime === 'N/A') return { text: 'N/A', color: 'bg-gray-500' };
-
-    const now = new Date();
-    const [hours, minutes] = showtime.split(':').map(Number);
-    const showtimeDate = new Date();
-    showtimeDate.setHours(hours, minutes, 0, 0);
-
-    const diffMinutes = (showtimeDate.getTime() - now.getTime()) / (1000 * 60);
-
-    if (diffMinutes > 30) {
-      return { text: 'Sắp chiếu', color: 'bg-blue-500' };
-    } else if (diffMinutes <= 30 && diffMinutes > -120) {
-      return { text: 'Đang chiếu', color: 'bg-emerald-500 animate-pulse' };
-    } else {
-      return { text: 'Đã kết thúc', color: 'bg-red-500' };
+  /**
+   * FIX: Logic cũ so sánh giờ:phút với ngày hôm nay → sai khi vé thuộc ngày khác.
+   * Thay bằng logic dựa trên `quantity` trên blockchain — chính xác hơn:
+   * - quantity = 0: Vé đã dùng hết
+   * - quantity > 0: Vé còn hợp lệ (showtime chỉ dùng để hiển thị)
+   */
+  const getTicketStatus = (quantity: number) => {
+    if (quantity <= 0) {
+      return { text: 'Đã sử dụng', color: 'bg-red-500' };
     }
+    return { text: 'Hợp lệ', color: 'bg-emerald-500' };
   };
 
   if (!account) {
@@ -149,7 +146,7 @@ export const MyTickets = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
       {tickets.map((ticket) => {
-        const status = getTicketStatus(ticket.showtime);
+        const status = getTicketStatus(ticket.quantity);
         return (
           <div key={ticket.id} className="bg-gray-900 rounded-3xl border border-gray-800 overflow-hidden hover:border-emerald-500/50 transition-all duration-500 group flex flex-col shadow-xl hover:shadow-emerald-500/10">
             <div className="aspect-[2/3] relative">

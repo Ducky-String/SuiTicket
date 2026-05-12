@@ -1,5 +1,8 @@
 import { useState } from 'react';
 
+// Giới hạn số ghế tối đa khớp với MAX_QUANTITY trong Move contract
+const MAX_SEATS = 100;
+
 interface SeatSelectionProps {
   movieTitle: string;
   showtime: string;
@@ -21,6 +24,11 @@ export const SeatSelection = ({ movieTitle, showtime, pricePerSeat, occupiedSeat
     if (selectedSeats.includes(seatId)) {
       setSelectedSeats(selectedSeats.filter(id => id !== seatId));
     } else {
+      // Kiểm tra giới hạn MAX_SEATS (100) để khớp với contract
+      if (selectedSeats.length >= MAX_SEATS) {
+        alert(`Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế mỗi lần mua.`);
+        return;
+      }
       setSelectedSeats([...selectedSeats, seatId]);
     }
   };
@@ -48,6 +56,11 @@ export const SeatSelection = ({ movieTitle, showtime, pricePerSeat, occupiedSeat
               <span className="w-1 h-1 bg-gray-700 rounded-full"></span>
               <span className="text-emerald-400 font-medium">{showtime}</span>
             </p>
+            {selectedSeats.length > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                Đã chọn {selectedSeats.length}/{MAX_SEATS} ghế tối đa
+              </p>
+            )}
           </div>
 
           {/* Screen */}
@@ -66,6 +79,7 @@ export const SeatSelection = ({ movieTitle, showtime, pricePerSeat, occupiedSeat
                     const seatId = `${row}${col}`;
                     const isSelected = selectedSeats.includes(seatId);
                     const isOccupied = occupiedSeats.includes(seatId);
+                    const isMaxReached = selectedSeats.length >= MAX_SEATS && !isSelected;
                     
                     return (
                       <button
@@ -77,7 +91,9 @@ export const SeatSelection = ({ movieTitle, showtime, pricePerSeat, occupiedSeat
                             ? 'bg-red-900/40 border border-red-900/50 text-red-500/50 cursor-not-allowed'
                             : isSelected 
                               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-110 rotate-3' 
-                              : 'bg-gray-800 border border-gray-700 text-gray-500 hover:border-blue-500/50 hover:text-blue-400'
+                              : isMaxReached
+                                ? 'bg-gray-800 border border-gray-700 text-gray-600 cursor-not-allowed opacity-50'
+                                : 'bg-gray-800 border border-gray-700 text-gray-500 hover:border-blue-500/50 hover:text-blue-400'
                         }`}
                       >
                         {col}

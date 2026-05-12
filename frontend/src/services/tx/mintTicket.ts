@@ -1,3 +1,8 @@
+/**
+ * @deprecated File này KHÔNG được dùng trong app.
+ * Hàm mint ticket chính đang ở: services/tx/executeMintTicket.ts → handleMintTicket()
+ * File này có thể được xóa an toàn.
+ */
 import { Transaction } from '@mysten/sui/transactions';
 import { TICKET_PACKAGE_ID } from '../../constants/contracts';
 import { DEFAULT_NETWORK, type SupportedNetwork } from '../../constants/networks';
